@@ -1,15 +1,13 @@
 {
   "name": "toender-monitor",
   "version": "1.0.0",
-  "description": "Telegram Bot für Toender Terminüberwachung",
+  "description": "Toender appointment monitor",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
   },
   "dependencies": {
-    "axios": "^1.11.0",
-    "cheerio": "^1.1.2",
-    "dotenv": "^17.2.1",
-    "node-telegram-bot-api": "^0.66.0"
+    "axios": "^1.9.0",
+    "cheerio": "^1.0.0"
   }
 }
