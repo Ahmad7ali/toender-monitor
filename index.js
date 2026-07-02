@@ -1,3 +1,4 @@
+const puppeteer = require("puppeteer");
 const axios = require("axios");
 
 const BOT_TOKEN = process.env.BOT_TOKEN;
@@ -21,30 +22,44 @@ async function sendTelegram(message) {
 let lastState = null;
 
 async function checkAppointments() {
+  let browser;
+
   try {
-    const response = await axios.get(URL, {
-      headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/137.0 Safari/537.36",
-      },
+    browser = await puppeteer.launch({
+      headless: "new",
+      args: ["--no-sandbox", "--disable-setuid-sandbox"]
     });
 
-    const html = response.data;
+    const page = await browser.newPage();
 
-    // HTML ausgeben
-    console.log(html.substring(0, 3000));
+    await page.setUserAgent(
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/137.0 Safari/537.36"
+    );
 
-    const hasAvailableTime =
+    await page.goto(URL, {
+      waitUntil: "networkidle2",
+      timeout: 60000
+    });
+
+    const html = await page.content();
+
+    console.log("Seite geladen.");
+
+    const hasError = html.includes("FlowStateIsMissing");
+
+    if (hasError) {
+      console.log("FlowState fehlt.");
+    }
+
+    const hasAppointment =
       html.includes("Choose time") ||
       html.includes("Available") ||
-      html.includes("ReserveTime") ||
       html.includes("Book");
 
-    if (hasAvailableTime) {
+    if (hasAppointment && !hasError) {
       if (lastState !== "open") {
         await sendTelegram(
-          "🚨 TØNDER ALARM!\n\nEs könnte ein neuer Termin verfügbar sein!\n\n" +
-            URL
+          "🚨 TØNDER ALARM!\n\nEs könnte ein Termin verfügbar sein!\n\n" + URL
         );
         console.log("Termin gefunden!");
       }
@@ -53,11 +68,18 @@ async function checkAppointments() {
       console.log("Noch keine Termine.");
       lastState = "closed";
     }
+
+    await browser.close();
   } catch (err) {
-    console.error("Fehler:", err.message);
+    console.error(err);
+
+    if (browser) {
+      await browser.close();
+    }
   }
 }
 
 console.log("Toender Monitor gestartet...");
+
 checkAppointments();
 setInterval(checkAppointments, CHECK_INTERVAL);
