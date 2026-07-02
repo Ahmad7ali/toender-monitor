@@ -6,7 +6,7 @@ const CHAT_ID = process.env.CHAT_ID;
 const URL =
   "https://reservation.frontdesksuite.com/toender/vielse/ReserveTime/TimeSelection?pageId=8d47364a-5e21-4e40-892d-e9f46878e18b&buttonId=9d98558f-9d2e-4a50-8124-adf00b4abfb0&culture=en";
 
-const CHECK_INTERVAL = 30000; // 30 Sekunden
+const CHECK_INTERVAL = 30000;
 
 async function sendTelegram(message) {
   await axios.post(
@@ -31,7 +31,9 @@ async function checkAppointments() {
 
     const html = response.data;
 
-    // Prüfen, ob die Buchungsseite geöffnet ist
+    // HTML ausgeben
+    console.log(html.substring(0, 3000));
+
     const hasAvailableTime =
       html.includes("Choose time") ||
       html.includes("Available") ||
